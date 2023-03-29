@@ -1,0 +1,19 @@
+<div style="height: 670px; padding:0px; margin: 0px;">
+    <!-- <button class="btn" [(ngModel)]="lng">Java</button>
+    <button class="btn" >Cpp</button> -->
+    <ngx-monaco-editor class="my-code-editor" (onInit)="onInit($event)" style="height: 50%; width:80%" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+    <!-- <p class="result" style="white-space: pre-line;">{{ finalResult }}</p> -->
+    <button (click)="ChangeTheme()" class="btn">Change Theme</button>
+    <button (click)="Save()" class="btn">Save</button>
+    <button (click)="compile()" class="btn">Compile</button>
+    <!-- <button (click)="Reset()" class="btn">Reset to default</button> -->
+    
+   <!-- <h3>Input</h3>
+   <textarea name="input" id="input" cols="30" rows="10" class="input-box" [(ngModel)]="ip" style="color: white;"></textarea> -->
+
+
+<div id="terminal" class="display" style="background-color:black;">
+
+</div>
+  
+</div>

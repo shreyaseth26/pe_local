@@ -1,0 +1,25 @@
+.my-code-editor {
+
+      height: calc(100vh - 100px);
+    
+  }
+  .btn{
+    padding:10px;
+    margin:10px;
+    background-color: transparent;
+    border:1px solid black;
+    font-weight: bold;
+  }
+  .result{
+    width:100%;
+  }
+  .input-box{
+    width:100%;
+    background-color: black;
+    width:500px;
+    height: 200px;
+  }
+  .display{
+    width:100%;
+
+  }
