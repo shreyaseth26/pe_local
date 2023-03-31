@@ -1,13 +1,18 @@
 #include <iostream>
 using namespace std;
- 
+
 int main() {
-    int a, b;
-    cout << "Enter first number  : ";
-    cin >> a;
-    cout << "Enter second numberrrrr : ";
-    cin >> b;
-     
-    int sum = a + b;
-    cout << "Sum : " << sum << endl;
+
+  int first_number, second_number, sum;
+    
+ 
+  cin >> first_number >> second_number;
+
+  // sum of two numbers in stored in variable sumOfTwoNumbers
+  sum = first_number + second_number;
+
+  // prints sum 
+  cout << sum;     
+
+  return 0;
 }

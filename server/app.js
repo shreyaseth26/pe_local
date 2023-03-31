@@ -11,6 +11,8 @@ const pty = require("node-pty")
 const options = {stats:true};
 var path = require('path');
 var extention;
+const rubric = require("./rubric.json")
+const rubricresult= require("./rubricresult.json")
 
 // const io = require('socket.io')(3000,{
 //     cors:
@@ -129,6 +131,181 @@ app.get("/", (req, res) => {
     res.sendFile("assets/files" + "/index.html");
   });
 
+
+  app.post("/compile",(req,res)=>{
+    var op;
+    var error;
+     ip=req.body.inputs;
+    //  compileWithoutInputs(ip);
+    var child;
+    var cmd = ("g++ assets/files/test1.cpp")
+    child = exec(cmd, (err,stdout,stderr)=>{
+        
+        if(err){
+       
+            res.send(err)
+           
+        }
+        else if(stderr)
+        {
+        
+            res.send(stderr)
+        }
+        else{
+           res.send("Compiled");
+            console.log("File compiled!") 
+
+        }
+    })
+});
+ 
+app.post("/run",(req,res)=>{
+    const ip="5 6";
+    let output = "";
+    let errors = "";
+    const run = spawn("./a.exe");
+  
+    run.stdin.write(ip)
+    run.stdin.end();
+  
+    run.stdout.on('data',(result)=>{
+        output += result;
+    })
+  
+    run.stderr.on('data',(error)=>{
+        errors += error;
+    })
+  
+    run.on('close', (code) => {
+        if(code==1){
+            return res.send(errors);
+        }
+        return res.send(output);
+    });
+});
+
+app.post("/check", (req, res) => {
+    let testcase = rubric.criteria.blackboxtests;
+    let results = [];
+    
+   
+    const runTest = (input) => {
+      
+      return new Promise((resolve, reject) => {
+        const run = spawn("./a.exe");
+  
+        let output = "";
+        let errors = "";
+  
+        run.stdin.write(input);
+        run.stdin.end();
+  
+        run.stdout.on("data", (data) => {
+          output += data;
+        });
+  
+        run.stderr.on("data", (data) => {
+          errors += data;
+        });
+  
+        run.on("exit", (code) => {
+          if (code === 0) {
+          
+            resolve({ output, errors });
+          } else {
+            reject(errors);
+          }
+        });
+      });
+    };
+  
+    const runAllTests = async () => {
+        let jsonRes=[];
+      for (let i = 0; i < testcase.length; i++) {
+        const { input, output } = testcase[i].rule;
+          const result = await runTest(input);
+          
+          
+          if (result.output.trim() === output.trim()) {
+            results.push({ passed: true, message: "Test passed" });
+            jsonRes.push({ passed: true, message: "Test passed" })
+            
+            
+          } 
+          else if(result.output.trim()!= output.trim()){
+            results.push({
+              passed: false,
+              message: `Test failed. Expected: ${output.trim()}. Actual: ${result.output.trim()}`,
+            });
+            jsonRes.push({
+                passed: false,
+                message: `Test failed. Expected: ${output.trim()}. Actual: ${result.output.trim()}`,
+                
+              })
+            
+          
+        } 
+        else{
+          results.push({ passed: false, message: error });
+        }
+        
+      }
+      await writeFile(jsonRes).then(res.send("sucess!"));
+      res.send(results);
+    };
+  
+    function writeFile(jres){
+        return new Promise(function (resolve, reject) {
+            fs.writeFile("rubricresult.json", "", function () {
+              resolve("done");
+            });
+            fs.appendFile("rubricresult.json", JSON.stringify(jres), (err) => {
+              if (err) {
+                console.log(err);
+                reject(err);
+              } else {
+                resolve("done");
+              }
+            });
+          });
+    }
+    runAllTests();
+  });
+  
+
+// app.post("/check",(req,res)=>{
+//     let output = "";
+//     let errors = "";
+    
+//     const testcase=rubric.criteria.blackboxtests
+//     for(let i=0;i<testcase.length;i++){
+//         // console.log(testcase[i].rule.input);
+//         const run = spawn("./a.exe");
+//         run.stdin.write(testcase[i].rule.input);
+//         run.stdin.end();
+//         run.stdout.on('data',(result)=>{
+//             output += result;
+//         })
+//         run.stderr.on('data',(error)=>{
+//             errors += error;
+//         })
+//         run.on('close', (code) => {
+//             if(code==1){
+//                 return res.send(errors);
+//             }
+//             return res.send(output);
+//         });
+//         // console.log(testcase[i].rule.output);
+    
+//     }
+    
+// })
+
+
+app.listen(3000, ()=>{
+    console.log("Listening");
+})
+
 //   io.on("compile", (socket) => {
 //     console.log("Client Connected");
 //     let ptyProcess = pty.spawn(shell, [], {
@@ -147,39 +324,39 @@ app.get("/", (req, res) => {
 //       ptyProcess.write('\r');
 //     });
 //   });
-var ip
-function compileWithoutInputs(){
-    const options = {
-        cwd:process.cwd(),
-        end:process.env,
-        stdio:'inherit',
-        encoding:'utf-8'
-    }
-     
-    var child;
-    var cmd = ("g++ assets/files/test1.cpp")
-    child = exec(cmd, (err,stdout,stderr)=>{
-        
-        if(err){
-            console.log("err")
-            console.log(err)
-            res.send(err)
-           
-        }
-        else if(stderr)
-        {
-            console.log("stdeer")
-            res.send(stderr)
-        }
-        else{
-            console.log("File compiled!")
-            const run= spawn("a.exe",options);  
-        }
-    })
-}
 
-// function compileWithInputs(inputs){
-//     console.log(inputs)
+// function compileWithoutInputs(){
+//     const options = {
+//         cwd:process.cwd(),
+//         end:process.env,
+//         stdio:'inherit',
+//         encoding:'utf-8'
+//     }
+     
+//     var child;
+//     var cmd = ("g++ assets/files/test1.cpp")
+//     child = exec(cmd, (err,stdout,stderr)=>{
+        
+//         if(err){
+//             console.log("err")
+//             console.log(err)
+//             res.send(err)
+           
+//         }
+//         else if(stderr)
+//         {
+//             console.log("stdeer")
+//             res.send(stderr)
+//         }
+//         else{
+//             console.log("File compiled!")
+//             const run= spawn("a.exe",options);  
+//         }
+//     })
+// }
+
+// function compileWithInputs(req,res){
+   
 //     var child;
 //     var cmd = ("g++ assets/files/test1.cpp")
 //     child = exec(cmd, (err,stdout,stderr)=>{
@@ -195,14 +372,15 @@ function compileWithoutInputs(){
 //             res.send(stderr)
 //         }
 //         else{
+//            res.send("Compiled");
 //             console.log("File compiled!") 
 
 //         }
 //     })
 
-//     const run= spawn("a.exe");  
-//     run.stdin.write(inputs)
-//     run.stdin.end();
+
+
+   
 //     // run.stdout.on("data",(data)=>{
 //     //     var output = data.toString()
 //     //     // res.send(output)
@@ -213,11 +391,7 @@ function compileWithoutInputs(){
 //     // })
    
 // }
-app.post("/compile",(req,res)=>{
-    var op;
-    var error;
-     ip=req.body.inputs;
-     compileWithoutInputs(ip);
+
     //  if(ip == 'undefined' || ip == "")
     //  {
         
@@ -279,11 +453,8 @@ app.post("/compile",(req,res)=>{
     //     console.log(stdout);
     //     res.send(stdout);
     // })    
-})
 
-app.listen(3000,()=>{
-    console.log("Listening");
-})
+
 
 
 
